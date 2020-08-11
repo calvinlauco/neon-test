@@ -1,0 +1,108 @@
+build_base: &build_base
+  addons:
+    apt:
+      packages:
+      - libssl-dev
+      - libcurl4-openssl-dev
+      - libelf-dev
+      - libdw-dev
+      - cmake
+      - gcc
+      - binutils-dev
+      - libc6-dev
+  cache:
+  - cargo
+  - npm
+  env:
+  - RUST_BACKTRACE=1
+  - PATH=$HOME/.local/bin:$PATH
+
+publish_base: &publish_base
+  <<: *build_base
+  language: node_js
+  if: (type != cron) AND (branch == master)
+  install:
+  - rustc --version
+  - cargo --version
+  - node -v
+  - npm -v
+  - npm install
+  before_install:
+  - curl https://sh.rustup.rs -sSf > /tmp/rustup.sh
+  - sh /tmp/rustup.sh -y
+  - export PATH="$HOME/.cargo/bin:$PATH"
+  - source "$HOME/.cargo/env"
+  script:
+  - npm run binary:publish
+
+publish_job: &publish_job
+  <<: *publish_base
+publish_job_windows: &publish_job_windows
+  <<: *publish_base
+  before_install:
+  - curl https://sh.rustup.rs -sSf > /tmp/rustup.sh
+  - sh /tmp/rustup.sh -y
+  - export PATH="$HOME/.cargo/bin:$PATH"
+
+jobs:
+  allow_failures:
+  - rust: nightly
+  include:
+  # - stage: Build and Publish
+  #   name: Latest node (OSX)
+  #   <<: *publish_job
+  #   os: osx
+  #   node_js: node
+  # - name: Node.js 10 (OSX)
+  #   <<: *publish_job
+  #   os: osx
+  #   node_js: 10
+  # - name: Node.js 9 (OSX)
+  #   <<: *publish_job
+  #   os: osx
+  #   node_js: 9
+  # - name: Node.js 8 (OSX)
+  #   <<: *publish_job
+  #   os: osx
+  #   node_js: 8
+  # - name: Latest node (Linux)
+  #   <<: *publish_job
+  #   os: linux
+  #   node_js: node
+  # - name: Node.js 10 (Linux)
+  #   <<: *publish_job
+  #   os: linux
+  #   node_js: 10
+  # - name: Node.js 9 (Linux)
+  #   <<: *publish_job
+  #   os: linux
+  #   node_js: 9
+  # - name: Node.js 8 (Linux)
+  #   <<: *publish_job
+  #   os: linux
+  #   node_js: 8
+  # - name: Latest node (Windows)
+  #   <<: *publish_job_windows
+  #   os: windows
+  #   node_js: node
+  # - name: Node.js 10 (Windows)
+  #   <<: *publish_job_windows
+  #   os: windows
+  #   node_js: 10
+  # - name: Node.js 9 (Windows)
+  #   <<: *publish_job_windows
+  #   os: windows
+  #   node_js: 9
+  # - name: Node.js 8 (Windows)
+  #   <<: *publish_job_windows
+  #   os: windows
+  #   node_js: 8
+  - stage: Publish Artifact
+    <<: *publish_base
+    script:
+    - curl -fL https://getcli.jfrog.io | sh
+    - ./jfrog rt config --url $ARTIFACTORY_URL --user $ARTIFACTORY_USER --password $ARTIFACTORY_PASSWORD --interactive=false
+    - ./jfrog rt config --url $ARTIFACTORY_URL --user $ARTIFACTORY_USER --password $ARTIFACTORY_PASSWORD --interactive=false
+    - ./jfrog rt c show
+    - ./jfrog rt npmi --build-name=TravisCI --build-number=$TRAVIS_BUILD_NUMBER $ARTIFACTORY_NAME
+    - ./jfrog rt npmp --build-name=TravisCI --build-number=$TRAVIS_BUILD_NUMBER $ARTIFACTORY_NAME

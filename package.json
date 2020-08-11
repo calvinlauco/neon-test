@@ -1,0 +1,41 @@
+{
+  "name": "neon-test",
+  "version": "0.1.0",
+  "description": "",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calvinlauco/neon-test.git"
+  },
+  "author": "Calvin Lau <calvinlauco@gmail.com>",
+  "license": "MIT",
+  "files": [
+    "lib"
+  ],
+  "binary": {
+    "module_name": "index",
+    "host": "https://github.com/calvinlauco/neon-test/releases/download/",
+    "remote_path": "{version}",
+    "package_name": "{node_abi}-{platform}-{arch}.tar.gz",
+    "module_path": "./native",
+    "pkg_path": "."
+  },
+  "dependencies": {
+    "@amilajack/node-pre-gyp": "github:amilajack/node-pre-gyp#neon-compat",
+    "node-pre-gyp-github": "1.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "14.0.27",
+    "neon-cli": "0.4.0",
+    "typescript": "3.9.7"
+  },
+  "scripts": {
+    "install": "node-pre-gyp install --fallback-to-build=false || npm run build",
+    "build": "npm run build:neon && npm run build:tsc",
+    "build:neon": "neon build --release",
+    "build:tsc": "tsc",
+    "binary:publish": "npm run binary:package && npm run binary:upload",
+    "binary:package": "node-pre-gyp package",
+    "binary:upload": "node-pre-gyp-github publish"
+  }
+}
