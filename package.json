@@ -1,11 +1,11 @@
 {
-  "name": "neon-test",
-  "version": "0.1.0",
+  "name": "@calvinlauconpm/neon-test",
+  "version": "0.1.1",
   "description": "",
-  "main": "lib/index.js",
+  "main": "lib/dist/index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/calvinlauco/neon-test.git"
+    "url": "git+https://github.com/calvinlauco/neon-test.git"
   },
   "author": "Calvin Lau <calvinlauco@gmail.com>",
   "license": "MIT",
@@ -37,5 +37,12 @@
     "binary:publish": "npm run binary:package && npm run binary:upload",
     "binary:package": "node-pre-gyp package",
     "binary:upload": "node-pre-gyp-github publish"
+  },
+  "bugs": {
+    "url": "https://github.com/calvinlauco/neon-test/issues"
+  },
+  "homepage": "https://github.com/calvinlauco/neon-test#readme",
+  "directories": {
+    "lib": "lib"
   }
 }

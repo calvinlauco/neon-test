@@ -16,23 +16,23 @@ build_base: &build_base
   env:
   - RUST_BACKTRACE=1
   - PATH=$HOME/.local/bin:$PATH
-
-publish_base: &publish_base
-  <<: *build_base
-  language: node_js
-  if: (type != cron) AND (branch == master)
-  install:
-  - rustc --version
-  - cargo --version
-  - node -v
-  - npm -v
-  - npm install
   before_install:
   - curl https://sh.rustup.rs -sSf > /tmp/rustup.sh
   - sh /tmp/rustup.sh -y
   - export PATH="$HOME/.cargo/bin:$PATH"
   - source "$HOME/.cargo/env"
+  install:
+  - rustc --version
+  - cargo --version
+  - node -v
+  - npm -v
+
+publish_base: &publish_base
+  <<: *build_base
+  language: node_js
+  if: (type != cron) AND (branch == master)
   script:
+  - npm install
   - npm run binary:publish
 
 publish_job: &publish_job
@@ -97,12 +97,11 @@ jobs:
   #   <<: *publish_job_windows
   #   os: windows
   #   node_js: 8
-  - stage: Publish Artifact
-    <<: *publish_base
+  - stage: Push Artifact
+    <<: *build_base
     script:
+    - npm install
     - curl -fL https://getcli.jfrog.io | sh
-    - ./jfrog rt config --url $ARTIFACTORY_URL --user $ARTIFACTORY_USER --password $ARTIFACTORY_PASSWORD --interactive=false
-    - ./jfrog rt config --url $ARTIFACTORY_URL --user $ARTIFACTORY_USER --password $ARTIFACTORY_PASSWORD --interactive=false
-    - ./jfrog rt c show
-    - ./jfrog rt npmi --build-name=TravisCI --build-number=$TRAVIS_BUILD_NUMBER $ARTIFACTORY_NAME
-    - ./jfrog rt npmp --build-name=TravisCI --build-number=$TRAVIS_BUILD_NUMBER $ARTIFACTORY_NAME
+    - ./jfrog rt config --url "$ARTIFACTORY_URL" --user "$ARTIFACTORY_USER" --password "$ARTIFACTORY_PASSWORD" --interactive=false &&
+      ./jfrog rt npmi --build-name=TravisCI --build-number=$TRAVIS_BUILD_NUMBER "$ARTIFACTORY_NAME" &&
+      ./jfrog rt npmp --build-name=TravisCI --build-number=$TRAVIS_BUILD_NUMBER "$ARTIFACTORY_NAME"
